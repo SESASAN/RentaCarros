@@ -83,7 +83,10 @@ INSERT INTO Clientes (Nombre, Cedula, Direccion, Edad, Membresia)
 VALUES 
 ('Juan Pérez', '123456789', 'Calle Falsa 123', 35, 1),
 ('María López', '987654321', 'Avenida Principal 456', 28, 2),
-('Carlos García', '654321987', 'Carrera Secundaria 789', 40, 3);
+('Carlos García', '654321987', 'Carrera Secundaria 789', 40, 3),
+('Sofia Pérez', '1278267392', 'Calle sur 78', 25, 2),
+('Margarita Zapata', '987633563', 'Avenida Sedundaria 876', 28, 1);
+
 
 -- Datos para la tabla Vehículos
 INSERT INTO Vehiculos (Tipo, Marca, Modelo, Kilometraje)
@@ -105,8 +108,11 @@ INSERT INTO Asesores (Nombre, Cedula, Sede)
 VALUES
 ('Pedro Castillo', '111111111', 1),
 ('Luisa Martínez', '222222222', 2),
-('Ana Gómez', '333333333', 3);
+('Ana Gómez', '333333333', 3),
+('Flor Gonzalez', '1111112344', 3),
+('Pedro Escamozo', '2346722222', 1);
 GO
+
 
 -- Datos para la tabla Alquileres (Uso de transaccion para veificar la consistencia de los datos ingresados)
 BEGIN TRY
@@ -120,6 +126,57 @@ BEGIN TRY
     DECLARE @FechaFinalizacion DATE = NULL;
     DECLARE @Valor DECIMAL(10, 2) = 500.00;
     DECLARE @VehiculoId INT = 4;
+
+    -- Verificar que el cliente existe
+    IF NOT EXISTS (SELECT 1 FROM Clientes WHERE Id = @ClienteId)
+    BEGIN
+        PRINT 'El cliente no existe.';
+        ROLLBACK TRANSACTION;
+        RETURN; --Uso de return para terminar el analisis en caso de que la condicion se cumpla
+    END;
+
+    -- Verificar que el asesor existe
+    IF NOT EXISTS (SELECT 1 FROM Asesores WHERE Id = @AsesorId)
+    BEGIN
+        PRINT 'El asesor no existe.';
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+
+    -- Verificar que el vehículo existe
+    IF NOT EXISTS (SELECT 1 FROM Vehiculos WHERE Id = @VehiculoId)
+    BEGIN
+        PRINT 'El vehículo no existe.';
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+    -- Registrar el alquiler en la tabla Alquileres
+    INSERT INTO Alquileres (Cliente, Asesor, Fecha_renta, Fecha_finalizacion, Valor, Vehiculo)
+    VALUES (@ClienteId, @AsesorId, @FechaRenta, @FechaFinalizacion, @Valor, @VehiculoId);
+
+    -- Confirmar la transacción
+    COMMIT TRANSACTION;
+    PRINT 'Alquiler registrado correctamente.';
+END TRY
+BEGIN CATCH
+    PRINT 'Ocurrió un error: ' + ERROR_MESSAGE();
+	ROLLBACK TRANSACTION;
+END CATCH;
+
+GO
+----Agregamos mas datos a la tabla ALQUILERES
+
+BEGIN TRY
+    -- Iniciar una transacción
+    BEGIN TRANSACTION;
+
+    -- Declaración de variables, simulacion de entrada de datos
+    DECLARE @ClienteId INT = 1002 ;
+    DECLARE @AsesorId INT = 1;
+    DECLARE @FechaRenta DATE = '2022-10-11';
+    DECLARE @FechaFinalizacion DATE = '2022-10-23';
+    DECLARE @Valor DECIMAL(10, 2) = 950.00;
+    DECLARE @VehiculoId INT = 2;
 
     -- Verificar que el cliente existe
     IF NOT EXISTS (SELECT 1 FROM Clientes WHERE Id = @ClienteId)
@@ -238,16 +295,15 @@ ALTER TABLE Alquileres
 ADD Costos_adicionales decimal(10,2);
 
 
---READ (Consultas pa NATHY)
+--READ (con algebra relacional)
 
+SELECT Id FROM Clientes WHERE Membresia = 3;
 
+SELECT Clientes.Nombre AS 'NombreClientes' ,Vehiculos.Marca AS'MarcaVehiculos' FROM Clientes CROSS JOIN Vehiculos; 
 
+SELECT Marca, Kilometraje FROM Vehiculos;
 
-
-
-
-
-
+SELECT Vehiculo FROM Alquileres INTERSECT SELECT Id FROM Vehiculos;
 
 --UPDATE
 
@@ -292,3 +348,42 @@ DROP TABLE Daños_Vehiculo
 	--Borrar columnas
 ALTER TABLE Alquileres
 DROP COLUMN Costos_adicionales
+
+--SUBCONSULTAS
+SELECT Id,
+	(SELECT MAX(Valor)
+	FROM Alquileres
+	WHERE Alquileres.Vehiculo = Vehiculos.Id)
+	AS PrecioMaximoAlquiler
+FROM Vehiculos;
+
+SELECT Nombre,
+	(SELECT COUNT(*)
+	FROM Alquileres
+	WHERE Alquileres.Asesor = Asesores.Id)
+	AS MayoresAlquileresPorSede
+FROM Asesores
+WHERE Sede= 1
+
+
+SELECT Nombre,
+	(SELECT COUNT(*)
+	FROM Alquileres
+	WHERE Alquileres.Asesor = Asesores.Id)
+	AS MayoresAlquileres
+FROM Asesores;
+
+
+---CONSULTAS CON JOIN
+SELECT Asesores.Nombre, Sedes.Nombre FROM Asesores 
+JOIN Sedes ON Asesores.Sede = Sedes.Id;
+
+SELECT * FROM Asesores
+INNER JOIN Sedes ON Asesores.Sede = Sedes.Id;
+
+SELECT * FROM Alquileres 
+LEFT JOIN Vehiculos ON Alquileres.Vehiculo = Vehiculos.Id;
+
+SELECT * FROM Membresias 
+RIGHT JOIN Clientes ON Membresias.Id = Clientes.Membresia;
+
