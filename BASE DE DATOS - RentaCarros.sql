@@ -314,53 +314,6 @@ BEGIN CATCH
 END CATCH;
 GO
 
-
----------------------------------------------------------
-                       -- VISTAS --
----------------------------------------------------------
-
-CREATE VIEW Vista_Alquileres AS
-SELECT 
-    Alqui.Id AS AlquilerID,
-    Cli.Nombre AS Cliente_Nombre,
-    Cli.Cedula AS Cliente_Cedula,
-    Ase.Nombre AS Asesor_Nombre,
-    Ase.Cedula AS Asesor_Cedula,
-    Vehi.Placa AS Placa_Vehiculo,
-    Vehi.Marca AS Vehiculo_Marca,
-    Alqui.Fecha_renta,
-    Alqui.Fecha_finalizacion,
-    Alqui.Valor
-FROM 
-    Alquileres Alqui
-JOIN 
-    Clientes Cli ON Alqui.Cliente = Cli.Id
-JOIN 
-    Asesores Ase ON Alqui.Asesor = Ase.Id
-JOIN 
-    Vehiculos Vehi ON Alqui.Vehiculo = Vehi.Id;
-GO
-
-SELECT * FROM Vista_Alquileres;
-GO
-
-CREATE VIEW Vista_AlquileresPorSedeYAsesor AS
-SELECT 
-    Asesores.Nombre AS 'Nombre Asesor',
-    COUNT(Alquileres.Id) AS 'Asesor con Mas Alquiler por una sede'
-FROM 
-    Asesores
-LEFT JOIN 
-    Alquileres ON Asesores.Id = Alquileres.Asesor
-WHERE 
-    Asesores.Sede = 1
-GROUP BY 
-    Asesores.Nombre;
-GO
-
-SELECT * FROM Vista_AlquileresPorSedeYAsesor;
-GO
-
 ---------------------------------------------------------
 	    -- C|R|U|D PARA TABLAS EN SQL --
 ---------------------------------------------------------
@@ -486,6 +439,52 @@ LEFT JOIN Vehiculos ON Alquileres.Vehiculo = Vehiculos.Id;
 
 SELECT * FROM Membresias 
 RIGHT JOIN Clientes ON Membresias.Id = Clientes.Membresia;
+GO
+
+---------------------------------------------------------
+                       -- VISTAS --
+---------------------------------------------------------
+
+CREATE VIEW Vista_Alquileres AS
+SELECT 
+    Alqui.Id AS AlquilerID,
+    Cli.Nombre AS Cliente_Nombre,
+    Cli.Cedula AS Cliente_Cedula,
+    Ase.Nombre AS Asesor_Nombre,
+    Ase.Cedula AS Asesor_Cedula,
+    Vehi.Placa AS Placa_Vehiculo,
+    Vehi.Marca AS Vehiculo_Marca,
+    Alqui.Fecha_renta,
+    Alqui.Fecha_finalizacion,
+    Alqui.Valor
+FROM 
+    Alquileres Alqui
+JOIN 
+    Clientes Cli ON Alqui.Cliente = Cli.Id
+JOIN 
+    Asesores Ase ON Alqui.Asesor = Ase.Id
+JOIN 
+    Vehiculos Vehi ON Alqui.Vehiculo = Vehi.Id;
+GO
+
+SELECT * FROM Vista_Alquileres;
+GO
+
+CREATE VIEW Vista_AlquileresPorSedeYAsesor AS
+SELECT 
+    Asesores.Nombre AS 'Nombre Asesor',
+    COUNT(Alquileres.Id) AS 'Asesor con Mas Alquiler por una sede'
+FROM 
+    Asesores
+LEFT JOIN 
+    Alquileres ON Asesores.Id = Alquileres.Asesor
+WHERE 
+    Asesores.Sede = 1
+GROUP BY 
+    Asesores.Nombre;
+GO
+
+SELECT * FROM Vista_AlquileresPorSedeYAsesor;
 GO
 
 
