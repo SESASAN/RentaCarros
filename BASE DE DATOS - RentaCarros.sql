@@ -400,6 +400,7 @@ GO
 ---------------------------------------------------------
 
 --SUBCONSULTAS
+-- MAYOR PRECIO POR ALQUILER DE CADA VEHICULO
 SELECT Id,
 	(SELECT MAX(Valor)
 	FROM Alquileres
@@ -407,6 +408,7 @@ SELECT Id,
 	AS PrecioMaximoAlquiler
 FROM Vehiculos;
 
+-- CANTIDAD DE VENTAS POR ASESOR EN LA SEDE 1
 SELECT Nombre,
 	(SELECT COUNT(*)
 	FROM Alquileres
@@ -415,7 +417,7 @@ SELECT Nombre,
 FROM Asesores
 WHERE Sede= 1
 
-
+-- CANTIDAD DE ALQUILERES HECHOS POR ASESOR EN GENERAL
 SELECT Nombre,
 	(SELECT COUNT(*)
 	FROM Alquileres
